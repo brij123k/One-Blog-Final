@@ -37,6 +37,7 @@ import { AuthModule } from '../auth/auth.module';
 
   exports: [
     AIService,
+    GeminiProvider,
   ],
 })
 export class AIModule {}

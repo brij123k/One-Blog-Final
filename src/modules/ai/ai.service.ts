@@ -22,7 +22,252 @@ export class AIService {
     private readonly aiProviderModel: Model<AIProviderDocument>,
 
     private readonly geminiProvider: GeminiProvider,
-  ) {}
+  ) { }
+
+
+
+  private parseAIJson(
+    text: string,
+  ) {
+    try {
+      const cleaned = text
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+
+      return JSON.parse(cleaned);
+    } catch (error) {
+      console.error(text);
+
+      throw new Error(
+        'AI returned invalid JSON.',
+      );
+    }
+  }
+
+  private async analyzeBusiness(
+    provider: AIProvider,
+    context: any,
+  ) {
+    const prompt = `
+You are a world-class Ecommerce Business Consultant.
+
+Analyze this Shopify store.
+
+Store Context
+
+${JSON.stringify(context, null, 2)}
+
+Return ONLY valid JSON.
+
+{
+  "niche":"",
+  "businessSummary":"",
+  "targetAudience":"",
+  "brandVoice":"",
+  "language":"",
+  "primaryMarket":"",
+  "customerPainPoints":[
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "customerGoals":[
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "shortTailKeywords":[
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "longTailKeywords":[
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}
+`;
+
+    const response =
+      await this.generateText({
+        prompt,
+        providerId: provider.provider,
+        temperature: 0.3,
+      });
+
+    return this.parseAIJson(
+      response.text,
+    );
+  }
+
+  private async analyzeContentStrategy(
+    provider: AIProvider,
+    context: any,
+  ) {
+    const prompt = `
+You are an Ecommerce SEO Expert.
+
+Analyze this Shopify store.
+
+Store Context
+
+${JSON.stringify(context, null, 2)}
+
+Return ONLY JSON.
+
+{
+   "contentPillars":[
+      "",
+      "",
+      "",
+      "",
+      ""
+   ],
+
+   "faqIdeas":[
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+   ],
+
+   "seoSuggestions":[
+      "",
+      "",
+      "",
+      "",
+      ""
+   ],
+
+   "blogTopics":[
+      {
+         "title":"",
+         "keyword":"",
+         "intent":"",
+         "difficulty":"",
+         "priority":1
+      }
+   ],
+
+   "aiRecommendations":[
+      "",
+      "",
+      "",
+      "",
+      ""
+   ]
+}
+`;
+
+    const response =
+      await this.generateText({
+        prompt,
+        providerId: provider.provider,
+        temperature: 0.6,
+      });
+
+    return this.parseAIJson(
+      response.text,
+    );
+  }
+
+  private async analyzeCompetitors(
+    provider: AIProvider,
+    context: any,
+  ) {
+    const prompt = `
+You are a professional Ecommerce Market Research Expert.
+
+Using this Shopify Store Context,
+
+${JSON.stringify(context, null, 2)}
+
+Find the TOP 5 competitors.
+
+Return ONLY JSON.
+
+[
+  {
+    "name":"",
+    "website":"",
+    "description":"",
+    "strengths":[
+      "",
+      "",
+      ""
+    ],
+    "weaknesses":[
+      "",
+      "",
+      ""
+    ]
+  }
+]
+`;
+
+    const response =
+      await this.generateText({
+        prompt,
+        providerId: provider.provider,
+        temperature: 0.4,
+      });
+
+    return this.parseAIJson(
+      response.text,
+    );
+  }
+
+  private async generateText(data: {
+    prompt: string;
+    providerId: string;
+    temperature?: number;
+  }) {
+    const provider =
+      await this.aiProviderModel.findOne(
+        { provider: data.providerId }
+      );
+    console.log(provider)
+
+    if (!provider) {
+      throw new NotFoundException(
+        'AI Provider not found',
+      );
+    }
+
+    this.geminiProvider.initialize(
+      provider.apiKey,
+    );
+
+    return this.geminiProvider.generateText(
+      data.prompt,
+      {
+        modelName: provider.modelName,
+
+        temperature:
+          data.temperature ??
+          provider.temperature,
+
+        maxTokens:
+          provider.maxTokens,
+      },
+    );
+  }
 
   /**
    * Get Default AI Provider
@@ -164,4 +409,50 @@ export class AIService {
       id,
     );
   }
+
+  async analyzeStore(
+    context: any,
+  ) {
+    const provider =
+      await this.getDefaultProvider();
+
+    const business =
+      await this.analyzeBusiness(
+        provider,
+        context,
+      );
+    const strategy =
+      await this.analyzeContentStrategy(
+        provider,
+        context,
+      );
+    const competitors =
+      await this.analyzeCompetitors(
+        provider,
+        context,
+      );
+    return {
+      ...business,
+
+      ...strategy,
+
+      competitors,
+
+      lastAnalyzedAt:
+        new Date(),
+    };
+  }
+
+async generateImage(prompt: string) {
+  const provider =
+    await this.getDefaultProvider();
+
+  this.geminiProvider.initialize(
+    provider.apiKey,
+  );
+
+  return this.geminiProvider.generateImage(
+    prompt,
+  );
+}
 }

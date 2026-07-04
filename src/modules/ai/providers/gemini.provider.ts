@@ -119,4 +119,43 @@ export class GeminiProvider implements AIProviderInterface {
       'gemini-2.0-flash-lite',
     ];
   }
+
+  async generateImage(
+  prompt: string,
+): Promise<Buffer> {
+  if (!this.client) {
+    throw new Error(
+      'Gemini Provider not initialized.',
+    );
+  }
+
+  const response =
+    await this.client.models.generateContent({
+      model: 'gemini-3.1-flash-image',
+
+      contents: prompt,
+
+      config: {
+        responseModalities: ['IMAGE'],
+      },
+    });
+  console.log(JSON.stringify(response, null, 2));
+  const parts =
+    response.candidates?.[0]?.content?.parts ?? [];
+
+  const imagePart = parts.find(
+    (part: any) => part.inlineData,
+  );
+
+  if (!imagePart?.inlineData?.data) {
+    throw new Error(
+      'Gemini did not return an image.',
+    );
+  }
+
+  return Buffer.from(
+    imagePart.inlineData.data,
+    'base64',
+  );
+}
 }

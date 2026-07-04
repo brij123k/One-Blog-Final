@@ -3,7 +3,8 @@ import {
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
-
+import * as express from 'express';
+import * as path from 'path';
 import {
   SwaggerModule,
   DocumentBuilder,
@@ -38,6 +39,15 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.use(
+  '/uploads',
+  express.static(
+    path.join(
+      process.cwd(),
+      'uploads',
+    ),
+  ),
+);
   /**
    * Swagger
    */

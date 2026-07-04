@@ -9,6 +9,11 @@ import { Integration } from '../integrations/schema/integrations.schema';
 import * as jwt from 'jsonwebtoken';
 import { ShopifyLoginDto } from './dto/shopify-login.dto';
 import { JwtService } from '@nestjs/jwt';
+
+import * as bcrypt from 'bcrypt';
+import { AdminLoginDto } from './dto/admin-login.dto';
+
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -75,6 +80,7 @@ export class AuthService {
 
     const payload = {
       userId: user._id,
+      role: 'owner',
       integrationId: (integration._id).toString(),
       shopDomain,
     };
@@ -93,4 +99,51 @@ export class AuthService {
     };
   }
 
+  async adminLogin(dto: AdminLoginDto) {
+  const admin = await this.userModel.findOne({
+    email: dto.email,
+    role: 'admin',
+    isActive: true,
+  });
+
+  if (!admin || !admin.password) {
+  throw new UnauthorizedException(
+    'Invalid email or password',
+  );
+}
+
+  const match = await bcrypt.compare(
+    dto.password,
+    admin.password,
+  );
+
+  if (!match) {
+    throw new UnauthorizedException(
+      'Invalid email or password',
+    );
+  }
+
+  const payload = {
+    sub: admin._id,
+
+    role: admin.role,
+  };
+
+  const accessToken =
+    await this.jwtService.signAsync(payload,{
+        secret: process.env.JWT_SECRET,
+      });
+
+  return {
+    accessToken,
+
+    user: {
+      id: admin._id,
+
+      email: admin.email,
+
+      role: admin.role,
+    },
+  };
+}
 }

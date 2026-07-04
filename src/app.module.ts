@@ -8,11 +8,18 @@ import { PlansModule } from './modules/plans/plans.module';
 import { ShopifyModule } from './modules/shopify/shopify.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AIModule } from './modules/ai/ai.module';
+import { StoreIntelligenceModule } from './modules/store-intelligence/store-intelligence.module';
+import { BlogModule } from './modules/blog/blog.module';
+import { ImageModule } from './modules/image/image.module';
+import { CountryEventModule } from './modules/country-events/country-event.module';
+import { PublishModule } from './modules/publish/publish.module';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
 
     MongooseModule.forRoot(
       process.env.MONGO_URI!,
@@ -22,6 +29,11 @@ import { AIModule } from './modules/ai/ai.module';
     PlansModule,
     ShopifyModule,
     AIModule,
+    StoreIntelligenceModule,
+    BlogModule,
+    ImageModule,
+    CountryEventModule,
+    PublishModule,
   ],
   controllers: [AppController],
   providers: [AppService],

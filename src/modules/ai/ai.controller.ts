@@ -22,6 +22,8 @@ import { CreateAIProviderDto } from './dto/create-ai-provider.dto';
 import { UpdateAIProviderDto } from './dto/update-ai-provider.dto';
 
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('AI')
 @Controller({
@@ -31,7 +33,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 export class AIController {
   constructor(
     private readonly aiService: AIService,
-  ) {}
+  ) { }
 
   /**
    * ===========================
@@ -58,8 +60,9 @@ export class AIController {
    */
 
   @Get('providers')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiBearerAuth('JWT')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Get All AI Providers',
   })
@@ -68,20 +71,23 @@ export class AIController {
   }
 
   @Post('providers')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiBearerAuth('JWT')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Create AI Provider',
   })
   async createProvider(
     @Body() dto: CreateAIProviderDto,
   ) {
+    console.log("h1")
     return this.aiService.create(dto);
   }
 
   @Patch('providers/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiBearerAuth('JWT')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Update AI Provider',
   })
@@ -93,8 +99,9 @@ export class AIController {
   }
 
   @Delete('providers/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiBearerAuth('JWT')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Delete AI Provider',
   })

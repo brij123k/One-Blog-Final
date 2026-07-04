@@ -17,20 +17,21 @@ export class JwtStrategy extends PassportStrategy(
 
       ignoreExpiration: false,
 
-      secretOrKey:
-        process.env.JWT_SECRET!,
+      secretOrKey: process.env.JWT_SECRET!,
     });
   }
 
   async validate(payload: any) {
     return {
-      userId: payload.userId,
+      userId: payload.sub,
+
+      role: payload.role,
 
       integrationId:
-        payload.integrationId,
+        payload.integrationId ?? null,
 
       shopDomain:
-        payload.shopDomain,
+        payload.shopDomain ?? null,
     };
   }
 }
