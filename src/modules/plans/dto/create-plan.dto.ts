@@ -15,6 +15,9 @@ export class CreatePlanDto {
   articalsNumber?: number;
 
   @IsNumber()
+  maxTopics?: number;
+
+  @IsNumber()
   maxStores?: number;
 
   @IsBoolean()

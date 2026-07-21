@@ -62,7 +62,7 @@ export class PlansService {
 
   findFreePlan() {
     return this.planModel.findOne({
-      name: 'Free Teir',
+      name: 'Basic 30',
     });
   }
 }

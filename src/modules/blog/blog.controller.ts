@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  Get,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -29,6 +30,24 @@ export class BlogController {
   constructor(
     private readonly blogService: BlogService,
   ) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('owner')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get active blog-generation jobs for this store' })
+  findActive(@Req() req: any) {
+    return this.blogService.findActive(req.user.integrationId);
+  }
+
+  @Get('app')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('owner')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get app blogs with status and publish or scheduled date' })
+  findForApp(@Req() req: any) {
+    return this.blogService.findForApp(req.user.integrationId);
+  }
 
   @Post('generate')
   @UseGuards(

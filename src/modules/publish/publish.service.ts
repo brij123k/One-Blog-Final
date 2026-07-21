@@ -14,12 +14,16 @@ import {
 
 import { ShopifyService } from '../shopify/shopify.service';
 import { ScheduleBlogDto } from './dto/schedule-blog.dto';
+import { StoreIntelligence } from '../store-intelligence/schemas/store-intelligence.schema';
 
 @Injectable()
 export class PublishService {
     constructor(
         @InjectModel(Blog.name)
         private readonly blogModel: Model<Blog>,
+
+        @InjectModel(StoreIntelligence.name)
+        private readonly intelligenceModel: Model<StoreIntelligence>,
 
         private readonly shopifyService: ShopifyService,
     ) { }
@@ -35,7 +39,7 @@ async publish(
     _id: blogId,
     integrationId,
   });
-
+console.log(blog)
   if (!blog) {
     throw new NotFoundException(
       'Blog not found.',
@@ -84,6 +88,7 @@ async publish(
   /**
    * Mark Publishing
    */
+  
   blog.publishStatus = 'PUBLISHING';
   blog.publishError = '';
 
@@ -103,7 +108,7 @@ async publish(
      * Save Shopify Information
      */
     blog.publishStatus = 'PUBLISHED';
-
+    blog.status=BlogStatus.PUBLISHED;
     blog.publishedAt =
       result.publishedAt
         ? new Date(result.publishedAt)
@@ -138,6 +143,14 @@ async publish(
     }
 
     await blog.save();
+
+    const intelligence = await this.intelligenceModel.findOne({ integrationId });
+    if (intelligence?.blogTopics?.length) {
+      intelligence.blogTopics = intelligence.blogTopics.filter(
+        (topic) => topic.title.toLowerCase() !== blog.topic.toLowerCase(),
+      );
+      await intelligence.save();
+    }
 
     return {
       success: true,

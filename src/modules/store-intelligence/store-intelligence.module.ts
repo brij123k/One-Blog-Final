@@ -11,6 +11,9 @@ import { StoreIntelligenceController } from './controllers/store-intelligence.co
 
 import { ShopifyModule } from '../shopify/shopify.module';
 import { AIModule } from '../ai/ai.module';
+import { Integration, IntegrationSchema } from '../integrations/schema/integrations.schema';
+import { Plan, PlanSchema } from '../plans/schema/plan.schema';
+import { CountryEvent, CountryEventSchema } from '../country-events/schemas/country-event.schema';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { AIModule } from '../ai/ai.module';
         name: StoreIntelligence.name,
         schema: StoreIntelligenceSchema,
       },
+      { name: Integration.name, schema: IntegrationSchema },
+      { name: Plan.name, schema: PlanSchema },
+      { name: CountryEvent.name, schema: CountryEventSchema },
     ]),
 
     ShopifyModule,

@@ -33,8 +33,8 @@ export class StoreIntelligence {
   @Prop()
   language: string;
 
-  @Prop()
-  primaryMarket: string;
+  @Prop({ type: [String], default: [] })
+  primaryMarket: string[];
 
   @Prop({
     type: [String],

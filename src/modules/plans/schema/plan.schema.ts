@@ -14,6 +14,9 @@ export class Plan {
   @Prop({ required: true })
   articalsNumber?: number;
 
+  @Prop({ required: true, default: 30 })
+  maxTopics?: number;
+
   @Prop({ default: 1 })
   maxStores?: number;
 

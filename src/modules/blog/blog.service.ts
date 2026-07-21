@@ -15,7 +15,7 @@ import { AIService } from '../ai/ai.service';
 
 import { GenerateBlogDto } from './dto/generate-blog.dto';
 import { GenerateCampaignBlogDto } from './dto/generate-campaign-blog.dto';
-import { Blog } from './schemas/blog.schema';
+import { Blog, BlogStatus } from './schemas/blog.schema';
 import { ImageService } from '../image/image.service';
 ImageService
 @Injectable()
@@ -33,6 +33,22 @@ export class BlogService {
         private readonly imageService: ImageService,
     ) { }
 
+    findActive(integrationId: string) {
+        return this.blogModel.find({
+            integrationId,
+            status: { $in: [BlogStatus.GENERATING, BlogStatus.IMAGE_PENDING, BlogStatus.IMAGE_GENERATING, BlogStatus.COMPLETED] },
+        }).sort({ createdAt: -1 });
+    }
+
+    async findForApp(integrationId: string) {
+        const blogs = await this.blogModel.find({ integrationId }).sort({ createdAt: -1 }).lean();
+        return blogs.map((blog: any) => ({
+            ...blog,
+            appStatus: blog.publishStatus ?? blog.status,
+            publishDate: blog.publishStatus === 'SCHEDULED' ? blog.scheduledFor : blog.publishedAt,
+        }));
+    }
+
     async generate(
         integrationId: string,
         dto: GenerateBlogDto,
@@ -40,6 +56,7 @@ export class BlogService {
         const exist = await this.blogModel.findOne({
             integrationId,
             topic: dto.topic,
+            publishStatus:"PUBLISHED"
         });
         if (exist) {
             return {
@@ -118,11 +135,11 @@ export class BlogService {
                 content: blog.content,
             });
         console.log('savedBlog', savedBlog);
-        // const updatedBlog =
-        // await this.imageService.generateHeroImage(
-        // savedBlog._id.toString(),
-        // );
-        // console.log('updatedBlog', updatedBlog);
+        const updatedBlog =
+        await this.imageService.generateHeroImage(
+        savedBlog._id.toString(),
+        );
+        console.log('updatedBlog', updatedBlog);
         return {
             success: true,
 
@@ -131,7 +148,7 @@ export class BlogService {
             generatedAt:
                 new Date(),
 
-            blog: savedBlog,
+            blog: updatedBlog,
         };
     }
 
@@ -466,10 +483,10 @@ Return ONLY JSON.
                 content: blog.content,
             });
 
-        //   const updatedBlog =
-        // await this.imageService.generateHeroImage(
-        // savedBlog._id.toString(),
-        // );
+          const updatedBlog =
+        await this.imageService.generateHeroImage(
+        savedBlog._id.toString(),
+        );
 
         return {
             success: true,
@@ -481,7 +498,7 @@ Return ONLY JSON.
             generatedAt:
                 new Date(),
 
-            blog: savedBlog,
+            blog: updatedBlog,
         };
     }
 

@@ -12,6 +12,7 @@ import {
 import { BlogModule } from '../blog/blog.module';
 import { ShopifyModule } from '../shopify/shopify.module';
 import { PublishScheduler } from './scheduler.service';
+import { StoreIntelligence, StoreIntelligenceSchema } from '../store-intelligence/schemas/store-intelligence.schema';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PublishScheduler } from './scheduler.service';
         name: Blog.name,
         schema: BlogSchema,
       },
+      { name: StoreIntelligence.name, schema: StoreIntelligenceSchema },
     ]),
   ],
 

@@ -9,6 +9,7 @@ import {
 
 import { PlansController } from './plans.controller';
 import { PlansService } from './plans.service';
+import { BasicPlanSeedService } from './basic-plan-seed.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { PlansService } from './plans.service';
     ]),
   ],
   controllers: [PlansController],
-  providers: [PlansService],
+  providers: [PlansService, BasicPlanSeedService],
   exports: [PlansService],
 })
 export class PlansModule {}
